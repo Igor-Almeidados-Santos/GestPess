@@ -1,28 +1,38 @@
 # models/tarefa.py
 from datetime import datetime
 from typing import List, Optional
+from uuid import uuid4 # Garantir importação
 
 class Subtarefa:
-    def __init__(self, id: str, descricao: str, concluida: bool = False):
-        self.id = id
+    def __init__(self, descricao: str, concluida: bool = False, id: str = None):
+        if not descricao:
+            raise ValueError("A descrição da subtarefa não pode ser vazia.")
+        self.id = id if id else str(uuid4())
         self.descricao = descricao
         self.concluida = concluida
 
+    def __repr__(self):
+        return f"Subtarefa(id='{self.id}', descricao='{self.descricao}', concluida={self.concluida})"
+
+
 class Tarefa:
-    def __init__(self, id: str, titulo: str, categoria_id: str, data_hora: Optional[datetime] = None, observacoes: str = "", subtarefas: Optional[List[Subtarefa]] = None):
-        self.id = id
+    def __init__(self, titulo: str, categoria_id: str, data_hora: Optional[datetime] = None, observacoes: str = "", subtarefas: Optional[List[Subtarefa]] = None, id: str = None):
+        if not titulo:
+            raise ValueError("O título da tarefa não pode ser vazio.")
+        # categoria_id será validado no nível de serviço ou com um enum/tabela no futuro
+        
+        self.id = id if id else str(uuid4())
         self.titulo = titulo
-        self.categoria_id = categoria_id # ID da categoria da tarefa (Trabalho, Treino, etc.)
+        self.categoria_id = categoria_id 
         self.data_hora = data_hora
         self.observacoes = observacoes
         self.subtarefas = subtarefas if subtarefas is not None else []
-        self.concluida = False # Estado da tarefa principal
+        self.concluida = False
 
-# Exemplo de uso (opcional, apenas para teste)
-# if __name__ == '__main__':
-#     sub1 = Subtarefa(id="st001", descricao="Comprar passagens")
-#     sub2 = Subtarefa(id="st002", descricao="Reservar hotel")
-#     tarefa_viagem = Tarefa(id="t001", titulo="Planejar Viagem", categoria_id="cat_lazer", data_hora=datetime(2024, 12, 15, 10, 0, 0), subtarefas=[sub1, sub2])
-#     print(f"Tarefa: {tarefa_viagem.titulo}, Data: {tarefa_viagem.data_hora}")
-#     for sub in tarefa_viagem.subtarefas:
-#         print(f"  Subtarefa: {sub.descricao}")
+    def adicionar_subtarefa(self, descricao_subtarefa: str):
+        nova_subtarefa = Subtarefa(descricao=descricao_subtarefa)
+        self.subtarefas.append(nova_subtarefa)
+        return nova_subtarefa
+
+    def __repr__(self):
+        return f"Tarefa(id='{self.id}', titulo='{self.titulo}', categoria_id='{self.categoria_id}', concluida={self.concluida})"
