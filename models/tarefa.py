@@ -1,28 +1,59 @@
 # models/tarefa.py
 from datetime import datetime
 from typing import List, Optional
+from uuid import uuid4
 
 class Subtarefa:
-    def __init__(self, id: str, descricao: str, concluida: bool = False):
-        self.id = id
-        self.descricao = descricao
+    def __init__(self, descricao: str, concluida: bool = False, id: str = None):
+        if not descricao or not descricao.strip():
+            raise ValueError("A descrição da subtarefa não pode ser vazia.")
+        self.id = id if id else str(uuid4())
+        self.descricao = descricao.strip()
         self.concluida = concluida
 
+    def __repr__(self):
+        return f"Subtarefa(id='{self.id}', descricao='{self.descricao}', concluida={self.concluida})"
+
+    def marcar_como_concluida(self):
+        self.concluida = True
+
+    def marcar_como_pendente(self):
+        self.concluida = False
+
 class Tarefa:
-    def __init__(self, id: str, titulo: str, categoria_id: str, data_hora: Optional[datetime] = None, observacoes: str = "", subtarefas: Optional[List[Subtarefa]] = None):
-        self.id = id
-        self.titulo = titulo
-        self.categoria_id = categoria_id # ID da categoria da tarefa (Trabalho, Treino, etc.)
+    def __init__(self, titulo: str, categoria_id: str, data_hora: Optional[datetime] = None, observacoes: str = "", subtarefas: Optional[List[Subtarefa]] = None, id: str = None):
+        if not titulo or not titulo.strip():
+            raise ValueError("O título da tarefa não pode ser vazio.")
+        if not categoria_id or not categoria_id.strip():
+            raise ValueError("O ID da categoria da tarefa não pode ser vazio.")
+        
+        self.id = id if id else str(uuid4())
+        self.titulo = titulo.strip()
+        self.categoria_id = categoria_id.strip()
         self.data_hora = data_hora
-        self.observacoes = observacoes
+        self.observacoes = observacoes.strip() if observacoes else ""
         self.subtarefas = subtarefas if subtarefas is not None else []
         self.concluida = False # Estado da tarefa principal
 
-# Exemplo de uso (opcional, apenas para teste)
-# if __name__ == '__main__':
-#     sub1 = Subtarefa(id="st001", descricao="Comprar passagens")
-#     sub2 = Subtarefa(id="st002", descricao="Reservar hotel")
-#     tarefa_viagem = Tarefa(id="t001", titulo="Planejar Viagem", categoria_id="cat_lazer", data_hora=datetime(2024, 12, 15, 10, 0, 0), subtarefas=[sub1, sub2])
-#     print(f"Tarefa: {tarefa_viagem.titulo}, Data: {tarefa_viagem.data_hora}")
-#     for sub in tarefa_viagem.subtarefas:
-#         print(f"  Subtarefa: {sub.descricao}")
+    def adicionar_subtarefa(self, descricao_subtarefa: str) -> Subtarefa:
+        nova_subtarefa = Subtarefa(descricao=descricao_subtarefa)
+        self.subtarefas.append(nova_subtarefa)
+        return nova_subtarefa
+
+    def remover_subtarefa(self, subtarefa_id: str):
+        self.subtarefas = [st for st in self.subtarefas if st.id != subtarefa_id]
+
+    def marcar_como_concluida(self):
+        self.concluida = True
+        for sub_task in self.subtarefas: # Opcional: marcar todas as subtarefas como concluídas também
+             sub_task.marcar_como_concluida()
+
+    def marcar_como_pendente(self):
+        self.concluida = False
+        # Opcional: marcar todas as subtarefas como pendentes também
+        # for sub_task in self.subtarefas:
+        #      sub_task.marcar_como_pendente()
+
+
+    def __repr__(self):
+        return f"Tarefa(id='{self.id}', titulo='{self.titulo}', categoria_id='{self.categoria_id}', concluida={self.concluida}, subtarefas={len(self.subtarefas)})"
